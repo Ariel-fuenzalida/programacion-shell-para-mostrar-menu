@@ -9,39 +9,42 @@
 
 PS3 = "Seleccione una opcion: "
 
-opciones = ("Listar procesos" "Eliminar proceso" "listar detenidos" "activar servicio" "salir")
+main(){
 
-pausa(){
-  echo
-  read -p "para continuar ENTER"
+  opciones = ("Listar procesos" "Eliminar proceso" "listar detenidos" "activar servicio" "salir")
+
+  select opc in  "${opciones[@]}"
+  do
+    case $opc in
+
+      "listar procesos")
+        listar_procesos
+        ;;
+
+
+      "Eliminar proceso")
+        Eliminar_proceso
+        ;;
+
+
+      "listar detenidos")
+        listar detenidos
+        ;;
+
+
+      "activar servicio"
+        activar_servicio
+        ;;
+
+
+      "salir")
+        echo "cierre del menu"
+        break
+        ;;
+      *)
+        echo "opcion incorrecta"
+        ;;
+    esac
+  done
 }
-
-
-select opc in  "${opciones[@]}"
-do
-  case $opc in
-
-    "listar procesos")
-      echo
-      read -p "ingresa tu nombre: " usuario
-
-      > /tmp/procesos.txt
-      contador = 1
-
-
-    "Eliminar proceso")
-      echo
-
-      
-
-    "listar detenidos")
-      echo
-
-
-
-    "activar servicio"
-      echo
-
-
-    "salir")
-      echo
+    
