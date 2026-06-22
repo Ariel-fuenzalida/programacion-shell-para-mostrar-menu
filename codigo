@@ -46,6 +46,73 @@ listar_procesos() {
 }
 
 
+matar_proceso() {
+    echo
+    echo "===== MATAR PROCESO ====="
+    echo
+
+    if [ ! -s "$ARCHIVO_PROCESOS" ]; then
+        echo "Primero tienes que listar procesos."
+        pausa
+        return
+    fi
+
+    read -p "Ingresa el numero del proceso: " numero
+
+    contador=1
+    pid_elegido=""
+    usuario_elegido=""
+    comando_elegido=""
+
+    while IFS="|" read pid user comando
+    do
+        if [ "$contador" = "$numero" ]; then
+            pid_elegido="$pid"
+            usuario_elegido="$user"
+            comando_elegido="$comando"
+            break
+        fi
+
+        contador=$((contador + 1))
+    done < "$ARCHIVO_PROCESOS"
+
+    if [ "$pid_elegido" = "" ]; then
+        echo "Numero incorrecto."
+        pausa
+        return
+    fi
+
+    echo "Proceso seleccionado:"
+    echo "PID: $pid_elegido"
+    echo "Usuario: $usuario_elegido"
+    echo "Comando: $comando_elegido"
+    echo
+
+    read -p "Desea matar este proceso? (s/n): " respuesta
+
+    if [ "$respuesta" = "s" ] || [ "$respuesta" = "S" ]; then
+        kill "$pid_elegido" 2>/dev/null
+
+        if [ $? -eq 0 ]; then
+            echo "Proceso terminado correctamente."
+        else
+            echo "No se pudo terminar. Intentando con sudo..."
+            sudo kill "$pid_elegido"
+
+            if [ $? -eq 0 ]; then
+                echo "Proceso terminado con sudo."
+            else
+                echo "No se pudo terminar el proceso."
+            fi
+        fi
+    else
+        echo "Operacion cancelada."
+    fi
+
+    pausa
+}
+
+
 Listar_detenidos(){
   echo
   echo "Buscando servicios inactivos..."
