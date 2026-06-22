@@ -166,18 +166,18 @@ main(){
 
   PS3 = "Seleccion una opcion: "
 
-  opciones = ("Listar procesos" "Eliminar proceso" "listar detenidos" "activar servicio" "salir")
+  opciones = ("Listar procesos" "Matar proceso" "listar detenidos" "activar servicio" "salir")
 
   select opc in  "${opciones[@]}"
   do
     case $opc in
 
-      "listar procesos")
+      "Listar procesos")
         listar_procesos
         ;;
 
 
-      "matar proceso")
+      "Matar proceso")
         Matar_proceso
         ;;
 
