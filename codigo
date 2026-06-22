@@ -190,7 +190,7 @@ main(){
 
 
       "listar_detenidos")
-        Listar detenidos
+        Listar_detenidos
         ;;
 
 
