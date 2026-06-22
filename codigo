@@ -7,6 +7,13 @@
 
 # -INF2322-2
 
+ARCHIVO_PROCESOS="/tmp/procesos.txt"
+ARCHIVO_PANTALLA="/tmp/pantalla.txt"
+
+pausa() {
+    echo
+    read -p "ENTER para continuar..."
+}
 
 listar_procesos() {
     echo
@@ -183,7 +190,7 @@ main(){
 
 
       "listar_detenidos")
-        listar detenidos
+        Listar detenidos
         ;;
 
 
