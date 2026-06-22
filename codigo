@@ -164,9 +164,9 @@ Activar_Servicio(){
 
 main(){
 
-  PS3 = "Seleccion una opcion: "
+  PS3="Seleccion una opcion: "
 
-  opciones = ("Listar procesos" "Matar proceso" "listar detenidos" "activar servicio" "salir")
+  opciones=("Listar procesos" "Matar proceso" "listar detenidos" "activar servicio" "salir")
 
   select opc in  "${opciones[@]}"
   do
@@ -178,16 +178,16 @@ main(){
 
 
       "Matar proceso")
-        Matar_proceso
+        matar_proceso
         ;;
 
 
-      "listar detenidos")
+      "listar_detenidos")
         listar detenidos
         ;;
 
 
-      "activar servicio"
+      "Activar servicio")
         activar_servicio
         ;;
 
