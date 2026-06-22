@@ -110,8 +110,8 @@ main(){
         ;;
 
 
-      "Eliminar proceso")
-        Eliminar_proceso
+      "matar proceso")
+        Matar_proceso
         ;;
 
 
