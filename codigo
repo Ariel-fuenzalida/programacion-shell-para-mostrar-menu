@@ -7,13 +7,42 @@
 
 # -INF2322-2
 
-Listar_procesos(){
-  echo
-  read -p "ingresa tu nombre: " usuario
 
-  > /tmp/procesos.txt
-  contador = 1
+listar_procesos() {
+    echo
+    echo "===== LISTAR PROCESOS ====="
+    echo
 
+    read -p "Ingrese usuario o * para todos: " usuario
+
+    > "$ARCHIVO_PROCESOS"
+    > "$ARCHIVO_PANTALLA"
+
+    contador=1
+
+    if [ "$usuario" = "*" ]; then
+        ps -e -o pid=,user=,comm= | while read pid user comando
+        do
+            echo "$contador) PID: $pid Usuario: $user Comando: $comando" >> "$ARCHIVO_PANTALLA"
+            echo "$pid|$user|$comando" >> "$ARCHIVO_PROCESOS"
+            contador=$((contador + 1))
+        done
+    else
+        ps -u "$usuario" -o pid=,user=,comm= 2>/dev/null | while read pid user comando
+        do
+            echo "$contador) PID: $pid Usuario: $user Comando: $comando" >> "$ARCHIVO_PANTALLA"
+            echo "$pid|$user|$comando" >> "$ARCHIVO_PROCESOS"
+            contador=$((contador + 1))
+        done
+    fi
+
+    if [ -s "$ARCHIVO_PANTALLA" ]; then
+        less "$ARCHIVO_PANTALLA"
+    else
+        echo "No se encontraron procesos."
+    fi
+
+    pausa
 }
 
 
