@@ -194,7 +194,7 @@ main(){
         ;;
 
 
-      "Activar servicio")
+      "activar servicio")
         activar_servicio
         ;;
 
