@@ -13,7 +13,7 @@ listar_procesos() {
     echo "===== LISTAR PROCESOS ====="
     echo
 
-    read -p "Ingrese usuario o * para todos: " usuario
+    read -p "Ingrese usuario" usuario
 
     > "$ARCHIVO_PROCESOS"
     > "$ARCHIVO_PANTALLA"
