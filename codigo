@@ -4,40 +4,39 @@
 # -Ariel Fuenzalida
 # -Henry Huerta
 # -Diego Binimelis
-
 # -INF2322-2
 
-ARCHIVO_PROCESOS="/tmp/procesos.txt"
-ARCHIVO_PANTALLA="/tmp/pantalla.txt"
-ARCHIVO_SERVICIOS="/tmp/servicios.txt"
+ARCHIVO_PROCESOS="/tmp/procesos.txt"   # archivo donde se guardan los procesos encontrados
+ARCHIVO_PANTALLA="/tmp/pantalla.txt"   # archivo para mostrar los procesos ordenados
+ARCHIVO_SERVICIOS="/tmp/servicios.txt" # archivo donde se guardan los servicios detenidos
 
 pausa() {
     echo
-    read -p "ENTER para continuar..."
+    read -p "ENTER para continuar..." # pausa para que el usuario alcance a leer
 }
-
-
 
 listar_procesos() {
     echo
     echo "===== LISTAR PROCESOS ====="
     echo
 
-    read -p "Ingrese usuario o * para todos: " usuario
+    read -p "Ingrese usuario o * para todos: " usuario # leo el usuario o * para todos
 
-    > "$ARCHIVO_PROCESOS"
-    > "$ARCHIVO_PANTALLA"
+    > "$ARCHIVO_PROCESOS" # limpia el archivo de procesos
+    > "$ARCHIVO_PANTALLA" # limpia el archivo que se muestra
 
-    contador=1
+    contador=1 # contador para enumerar los procesos
 
     if [ "$usuario" = "*" ]; then
+        # si el usuario ingresa *, se listan todos los procesos
         ps -e -o pid=,user=,comm= | while read pid user comando
         do
             echo "$contador) PID: $pid Usuario: $user Comando: $comando" >> "$ARCHIVO_PANTALLA"
-            echo "$pid|$user|$comando" >> "$ARCHIVO_PROCESOS"
+            echo "$pid|$user|$comando" >> "$ARCHIVO_PROCESOS" # guardo los datos separados por |
             contador=$((contador + 1))
         done
     else
+        # si se ingresa un usuario, se listan solo sus procesos
         ps -u "$usuario" -o pid=,user=,comm= 2>/dev/null | while read pid user comando
         do
             echo "$contador) PID: $pid Usuario: $user Comando: $comando" >> "$ARCHIVO_PANTALLA"
@@ -46,6 +45,7 @@ listar_procesos() {
         done
     fi
 
+    # si el archivo tiene contenido se muestra con less
     if [ -s "$ARCHIVO_PANTALLA" ]; then
         less "$ARCHIVO_PANTALLA"
     else
@@ -55,26 +55,26 @@ listar_procesos() {
     pausa
 }
 
-
-
 matar_proceso() {
     echo
     echo "===== MATAR PROCESO ====="
     echo
 
+    # si no hay procesos listados, no se puede matar ninguno
     if [ ! -s "$ARCHIVO_PROCESOS" ]; then
         echo "Primero tienes que listar procesos."
         pausa
         return
     fi
 
-    read -p "Ingresa el numero del proceso: " numero
+    read -p "Ingresa el numero del proceso: " numero # numero secuencial del proceso
 
     contador=1
-    pid_elegido=""
-    usuario_elegido=""
-    comando_elegido=""
+    pid_elegido=""     # guarda el PID seleccionado
+    usuario_elegido="" # guarda el usuario del proceso
+    comando_elegido="" # guarda el comando del proceso
 
+    # se recorre el archivo hasta encontrar el numero elegido
     while IFS="|" read pid user comando
     do
         if [ "$contador" = "$numero" ]; then
@@ -87,6 +87,7 @@ matar_proceso() {
         contador=$((contador + 1))
     done < "$ARCHIVO_PROCESOS"
 
+    # si no se encuentra el PID, el numero ingresado no existe
     if [ "$pid_elegido" = "" ]; then
         echo "Numero incorrecto."
         pausa
@@ -102,11 +103,12 @@ matar_proceso() {
     read -p "Desea matar este proceso? (s/n): " respuesta
 
     if [ "$respuesta" = "s" ] || [ "$respuesta" = "S" ]; then
-        kill "$pid_elegido" 2>/dev/null
+        kill "$pid_elegido" 2>/dev/null # intenta matar el proceso con kill
 
         if [ $? -eq 0 ]; then
             echo "Proceso terminado correctamente."
         else
+            # si falla puede ser por permisos, por eso intenta con sudo
             echo "No se pudo terminar. Intentando con sudo..."
             sudo kill "$pid_elegido"
 
@@ -123,23 +125,22 @@ matar_proceso() {
     pausa
 }
 
-
-
-
 Listar_detenidos() {
     echo
     echo "Buscando servicios inactivos..."
 
-    > "$ARCHIVO_SERVICIOS"
+    > "$ARCHIVO_SERVICIOS" # limpia el archivo de servicios
 
-    contador=1
+    contador=1 # contador para enumerar servicios
 
+    # lista servicios inactivos o fallidos usando systemctl
     systemctl list-units --type=service --all --state=inactive,failed --no-legend | while read -r svc load active sub description
     do
         echo "$contador) $svc $description" >> "$ARCHIVO_SERVICIOS"
         contador=$((contador + 1))
     done
 
+    # si se encontraron servicios, se muestran pagina a pagina
     if [ -s "$ARCHIVO_SERVICIOS" ]; then
         less "$ARCHIVO_SERVICIOS"
     else
@@ -149,12 +150,10 @@ Listar_detenidos() {
     pausa
 }
 
-
-
-
 Activar_Servicio() {
     echo
 
+    # revisa que primero se haya generado el listado de servicios
     if [ ! -f "$ARCHIVO_SERVICIOS" ] || [ ! -s "$ARCHIVO_SERVICIOS" ]; then
         echo "Primero debes listar los servicios. Opcion 3."
         pausa
@@ -163,8 +162,9 @@ Activar_Servicio() {
 
     read -p "Ingresa el numero secuencial del servicio a activar: " numero
 
-    svc_a_activar=""
+    svc_a_activar="" # variable que guarda el servicio seleccionado
 
+    # busca el servicio que corresponde al numero ingresado
     while read -r col_numero col_svc resto_linea
     do
         if [ "$col_numero" = "$numero)" ]; then
@@ -175,11 +175,13 @@ Activar_Servicio() {
 
     if [ "$svc_a_activar" != "" ]; then
         echo "Iniciando el servicio: $svc_a_activar..."
-        systemctl start "$svc_a_activar" 2>/dev/null
+
+        systemctl start "$svc_a_activar" 2>/dev/null # intento iniciar sin sudo
 
         if [ $? -eq 0 ]; then
             echo "Servicio iniciado con exito."
         else
+            # si falla vuelve a intentar con sudo
             echo "No se pudo iniciar el servicio. Intentando con sudo..."
             sudo systemctl start "$svc_a_activar"
 
@@ -196,14 +198,12 @@ Activar_Servicio() {
     pausa
 }
 
-
-
 main() {
+    PS3="Seleccione una opcion: " # se muestra el select para pedir opciones
 
-    PS3="Seleccione una opcion: "
+    opciones=("Listar procesos" "Matar proceso" "listar detenidos" "activar servicio" "salir") # opciones del menu
 
-    opciones=("Listar procesos" "Matar proceso" "listar detenidos" "activar servicio" "salir")
-
+    # se muestrab las selecciones enumeradas
     select opc in "${opciones[@]}"
     do
         case $opc in
@@ -236,4 +236,4 @@ main() {
     done
 }
 
-main
+main # llamada a la funcion principal
