@@ -199,7 +199,7 @@ Activar_Servicio() {
 }
 
 main() {
-    PS3="Seleccione una opcion: " # se muestra el select para pedir opciones
+    PS3="Seleccione una opcion: " # mensaje que aparece para pedir una opcion
 
     opciones=("Listar procesos" "Matar proceso" "listar detenidos" "activar servicio" "salir") # opciones del menu
 
