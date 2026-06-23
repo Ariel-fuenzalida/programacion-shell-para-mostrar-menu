@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# taller 2 - Hadware y Sistemas Operativos
+# taller 2 - Hardware y Sistemas Operativos
 # -Ariel Fuenzalida
 # -Henry Huerta
 # -Diego Binimelis
@@ -9,18 +9,21 @@
 
 ARCHIVO_PROCESOS="/tmp/procesos.txt"
 ARCHIVO_PANTALLA="/tmp/pantalla.txt"
+ARCHIVO_SERVICIOS="/tmp/servicios.txt"
 
 pausa() {
     echo
     read -p "ENTER para continuar..."
 }
 
+
+
 listar_procesos() {
     echo
     echo "===== LISTAR PROCESOS ====="
     echo
 
-    read -p "Ingrese usuario" usuario
+    read -p "Ingrese usuario o * para todos: " usuario
 
     > "$ARCHIVO_PROCESOS"
     > "$ARCHIVO_PANTALLA"
@@ -51,6 +54,7 @@ listar_procesos() {
 
     pausa
 }
+
 
 
 matar_proceso() {
@@ -120,93 +124,116 @@ matar_proceso() {
 }
 
 
-Listar_detenidos(){
-  echo
-  echo "Buscando servicios inactivos..."
-  > /tmp/servicios.txt
-  contador=1
 
-  systemctl list-units --type=service --all --state=inactive,failed --no-legend | while read -r svc load active sub description; do
-    echo "$contador) $svc $descripcion" >> /tmp/servicios.txt
-    contador=((contador +1))
-  done
 
-  if [ -s /tmp/servicios.txt ]; then
-    less /tmp/servicios.txt
-  else
-    echo "No se encontrador servicios inactivos."
-  fi
-}
+Listar_detenidos() {
+    echo
+    echo "Buscando servicios inactivos..."
 
-Activar_Servicio(){
-  echo
-  if [ ! -f /tmp/servicios.txt ] || [ ! -s /tmp/servicios.txt ]; then
-    echo "Primero debes listar los servicios(Opcion 3)"
-    return
-  fi
+    > "$ARCHIVO_SERVICIOS"
 
-  read -p "Ingresa el numero secuencial del servicio a activar: " numero
-  svc_a_activar=""
+    contador=1
 
-  while read -r col_numero col_svc resto_linea; do
-    if [ "$col_numero" == "$numero)" ]; then
-      svc_a_activar="$col_svc"
-      break
-    fi
-  done < /tmp/servicios.txt
+    systemctl list-units --type=service --all --state=inactive,failed --no-legend | while read -r svc load active sub description
+    do
+        echo "$contador) $svc $description" >> "$ARCHIVO_SERVICIOS"
+        contador=$((contador + 1))
+    done
 
-  if [ "$svc_a_activar" != "" ]; then
-    echo "Iniciando el servicio: $svc_a_activar..."
-    systemctl start "$svc_a_activar" 2>dev/null
-    if [ $? -eq 0 ]; then
-      echo "Servicio iniciado con exito."
+    if [ -s "$ARCHIVO_SERVICIOS" ]; then
+        less "$ARCHIVO_SERVICIOS"
     else
-      echo "No se pudo iniciar el servicio"
+        echo "No se encontraron servicios inactivos."
     fi
-  else
-    echo "Servicio no encontrado"
-  fi
+
+    pausa
 }
 
 
-main(){
-
-  PS3="Seleccion una opcion: "
-
-  opciones=("Listar procesos" "Matar proceso" "listar detenidos" "activar servicio" "salir")
-
-  select opc in  "${opciones[@]}"
-  do
-    case $opc in
-
-      "Listar procesos")
-        listar_procesos
-        ;;
 
 
-      "Matar proceso")
-        matar_proceso
-        ;;
+Activar_Servicio() {
+    echo
 
+    if [ ! -f "$ARCHIVO_SERVICIOS" ] || [ ! -s "$ARCHIVO_SERVICIOS" ]; then
+        echo "Primero debes listar los servicios. Opcion 3."
+        pausa
+        return
+    fi
 
-      "listar_detenidos")
-        Listar_detenidos
-        ;;
+    read -p "Ingresa el numero secuencial del servicio a activar: " numero
 
+    svc_a_activar=""
 
-      "activar servicio")
-        activar_servicio
-        ;;
+    while read -r col_numero col_svc resto_linea
+    do
+        if [ "$col_numero" = "$numero)" ]; then
+            svc_a_activar="$col_svc"
+            break
+        fi
+    done < "$ARCHIVO_SERVICIOS"
 
+    if [ "$svc_a_activar" != "" ]; then
+        echo "Iniciando el servicio: $svc_a_activar..."
+        systemctl start "$svc_a_activar" 2>/dev/null
 
-      "salir")
-        echo "cierre del menu"
-        break
-        ;;
-      *)
-        echo "opcion incorrecta"
-        ;;
-    esac
-  done
+        if [ $? -eq 0 ]; then
+            echo "Servicio iniciado con exito."
+        else
+            echo "No se pudo iniciar el servicio. Intentando con sudo..."
+            sudo systemctl start "$svc_a_activar"
+
+            if [ $? -eq 0 ]; then
+                echo "Servicio iniciado con sudo."
+            else
+                echo "No se pudo iniciar el servicio."
+            fi
+        fi
+    else
+        echo "Servicio no encontrado."
+    fi
+
+    pausa
 }
-    
+
+
+
+main() {
+
+    PS3="Seleccione una opcion: "
+
+    opciones=("Listar procesos" "Matar proceso" "listar detenidos" "activar servicio" "salir")
+
+    select opc in "${opciones[@]}"
+    do
+        case $opc in
+
+            "Listar procesos")
+                listar_procesos
+                ;;
+
+            "Matar proceso")
+                matar_proceso
+                ;;
+
+            "listar detenidos")
+                Listar_detenidos
+                ;;
+
+            "activar servicio")
+                Activar_Servicio
+                ;;
+
+            "salir")
+                echo "cierre del menu"
+                break
+                ;;
+
+            *)
+                echo "opcion incorrecta"
+                ;;
+        esac
+    done
+}
+
+main
